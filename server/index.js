@@ -14,7 +14,9 @@ const sql = neon(process.env.DB_URL);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : true}));
-app.use(cors());
+app.use(cors({
+  origin : '*'
+}));
 
 app.get('/api/states', async (req, res) => {
     try {
@@ -33,6 +35,15 @@ app.put('/update-policy' , (req,res) => updatePolicyByAdmin(req,res,sql));  // C
 // Add new routes
 app.post('/policy-comment', (req, res) => addPolicyComment(req, res, sql));
 app.get('/policy-comments/:policyId', (req, res) => getPolicyComments(req, res, sql));
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    message: 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
 
 app.listen(PORT,()=>{
     console.log('Server is ready!');
